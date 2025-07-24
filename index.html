@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>QR Code Generator</title>
   <style>
     body {
@@ -18,13 +18,26 @@
     }
     .card {
       background: white;
-      padding: 30px;
+      padding: 30px 30px 26px 30px;
       border-radius: 12px;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
       width: 100%;
       max-width: 400px;
       text-align: center;
       position: relative;
+    }
+    #muteBtn {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: #e5e7eb;
+      border: none;
+      border-radius: 9999px;
+      width: 40px;
+      height: 40px;
+      cursor: pointer;
+      font-size: 18px;
+      line-height: 40px;
     }
     h1 {
       font-size: 24px;
@@ -39,6 +52,13 @@
       border-radius: 8px;
       font-size: 16px;
       box-sizing: border-box;
+      transition: all 0.2s ease;
+    }
+    /* নীল স্ট্রোক + শ্যাডো */
+    input[type="text"]:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+      outline: none;
     }
     button.generate-btn {
       background-color: #2563eb;
@@ -76,7 +96,7 @@
     }
     .format-options {
       margin-top: 14px;
-      display: flex;
+      display: none;
       justify-content: space-around;
       gap: 10px;
     }
@@ -114,6 +134,7 @@
       display: none;
       justify-content: center;
       align-items: center;
+      z-index: 9999;
     }
     .popup-content {
       background: white;
@@ -122,6 +143,7 @@
       max-width: 350px;
       width: 90%;
       text-align: center;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     }
     .popup-content button {
       background-color: #10b981;
@@ -131,6 +153,7 @@
       border-radius: 8px;
       cursor: pointer;
       font-size: 16px;
+      margin-top: 10px;
     }
     .payment-form {
       margin-top: 20px;
@@ -144,6 +167,7 @@
       border-radius: 6px;
       border: 1px solid #ccc;
       font-size: 14px;
+      box-sizing: border-box;
     }
     .payment-form button {
       background-color: #2563eb;
@@ -165,7 +189,7 @@
       border-radius: 8px;
       font-size: 14px;
       display: none;
-      z-index: 999;
+      z-index: 10000;
       box-shadow: 0 2px 10px rgba(0,0,0,0.2);
     }
     .developer {
@@ -182,16 +206,17 @@
     }
   </style>
 </head>
-<body ontouchstart="playClick()">
+<body>
   <div class="card">
+    <button id="muteBtn" title="Mute/Unmute">🔊</button>
     <h1>QR Code Generator</h1>
     <input id="linkInput" type="text" placeholder="Enter link (e.g. https://example.com)" />
     <input id="descInput" type="text" placeholder="Optional description" />
     <button class="generate-btn" onclick="playClick(); generateQRCode()">Generate QR Code</button>
     <p id="counterInfo" class="description-text">You have 10 free QR codes remaining.</p>
     <div id="qrCodeContainer"></div>
-    <button id="downloadBtn" onclick="playClick(); showFormats()">Download Now</button>
-    <div class="format-options" id="formatOptions" style="display:none;">
+    <button id="downloadBtn" onclick="playDownload(); showFormats()">Download Now</button>
+    <div class="format-options" id="formatOptions">
       <button class="png-btn" onclick="playClick(); downloadFormat('png')">PNG</button>
       <button class="jpg-btn" onclick="playClick(); downloadFormat('jpg')">JPG</button>
       <button class="svg-btn" onclick="playClick(); downloadFormat('svg')">SVG</button>
@@ -201,7 +226,7 @@
   <div id="popup">
     <div class="popup-content">
       <h2>Limit Exceeded</h2>
-      <p>আপনি ফ্রিতে সর্বোচ্চ ১০টি QR কোড জেনারেট করতে পারবেন। এখন থেকে প্রতি কিউআর কোড ১ ডলার।</p>
+      <p>আপনি ফ্রিতে সর্বোচ্চ ১০টি QR কোড জেনারেট করতে পারবেন। এখন থেকে প্রতি কোডের জন্য $১ দিতে হবে।</p>
       <button onclick="playClick(); showPaymentForm()">Pay Now</button>
       <div class="payment-form" id="paymentForm">
         <input type="text" placeholder="Cardholder Name" />
@@ -216,16 +241,13 @@
   <div id="interlinkPopup">Please enter a valid link (required)</div>
 
   <div class="developer">
-    Developer By: <a href="https://www.facebook.com/ebrahim.khalil.260497" target="_blank">Ebrahim Khalil</a>
+    Developer By: <a href="https://www.facebook.com/ebrahim.khalil.260497" target="_blank" rel="noopener noreferrer">Ebrahim Khalil</a>
   </div>
 
-  <!-- Sounds -->
-  <audio id="clickSound" preload="auto">
-    <source src="https://cdn.pixabay.com/download/audio/2023/03/16/audio_69f6a2c857.mp3?filename=pop-113172.mp3" type="audio/mpeg">
-  </audio>
-  <audio id="typeSound" preload="auto">
-    <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_b61c9ec59e.mp3?filename=keyboard-typing-20708.mp3" type="audio/mpeg">
-  </audio>
+  <!-- Local Sounds -->
+  <audio id="clickSound" src="mouse-click-1.mp3" preload="auto"></audio>
+  <audio id="typeSound" src="keyboard-typin.mp3" preload="auto"></audio>
+  <audio id="downloadSound" src="swoosh-3.mp3" preload="auto"></audio>
 
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
   <script>
@@ -233,41 +255,57 @@
     let qrCount = 0;
     const FREE_LIMIT = 10;
     let soundUnlocked = false;
+    let isMuted = false;
 
-    document.addEventListener("click", unlockSound);
-    document.addEventListener("touchstart", unlockSound);
+    const clickSound = document.getElementById("clickSound");
+    const typeSound = document.getElementById("typeSound");
+    const downloadSound = document.getElementById("downloadSound");
+    const muteBtn = document.getElementById("muteBtn");
+
+    // Unlock sound on first user interaction
+    document.addEventListener("click", unlockSound, { once: true });
+    document.addEventListener("touchstart", unlockSound, { once: true });
 
     function unlockSound() {
-      if (soundUnlocked) return;
-      const clickSound = document.getElementById("clickSound");
-      const typeSound = document.getElementById("typeSound");
-      clickSound.play().catch(()=>{});
-      typeSound.play().catch(()=>{});
-      clickSound.pause(); clickSound.currentTime = 0;
-      typeSound.pause(); typeSound.currentTime = 0;
+      // Attempt a silent play to unlock (muted flag blocks later real plays if needed)
+      [clickSound, typeSound, downloadSound].forEach(a => {
+        a.play().catch(() => {});
+        a.pause();
+        a.currentTime = 0;
+      });
       soundUnlocked = true;
-      document.removeEventListener("click", unlockSound);
-      document.removeEventListener("touchstart", unlockSound);
     }
 
-    function playClick() {
-      const clickSound = document.getElementById("clickSound");
-      if (soundUnlocked && clickSound) {
-        clickSound.pause();
-        clickSound.currentTime = 0;
-        clickSound.play().catch(()=>{});
-      }
+    function play(soundEl) {
+      if (!soundUnlocked || isMuted || !soundEl) return;
+      try {
+        soundEl.pause();
+        soundEl.currentTime = 0;
+        soundEl.play().catch(() => {});
+      } catch {}
     }
 
+    function playClick() { play(clickSound); }
+    function playTyping() { play(typeSound); }
+    function playDownload() { play(downloadSound); }
+
+    // Mute / Unmute toggle
+    muteBtn.addEventListener("click", () => {
+      isMuted = !isMuted;
+      muteBtn.textContent = isMuted ? "🔇" : "🔊";
+      playClick();
+    });
+
+    // Play typing sound with debounce
+    let typingTimeout;
     document.addEventListener("DOMContentLoaded", () => {
       document.querySelectorAll('input[type="text"]').forEach(input => {
         input.addEventListener("input", () => {
-          const typeSound = document.getElementById("typeSound");
-          if (soundUnlocked && typeSound) {
-            typeSound.pause();
-            typeSound.currentTime = 0;
-            typeSound.play().catch(()=>{});
-          }
+          if (typingTimeout) return;
+          playTyping();
+          typingTimeout = setTimeout(() => {
+            typingTimeout = null;
+          }, 100);
         });
       });
     });
@@ -330,45 +368,67 @@
     }
 
     function updateCounter() {
-      const remaining = Math.max(FREE_LIMIT - qrCount, 0);
-      document.getElementById("counterInfo").textContent = `You have ${remaining} free QR code${remaining !== 1 ? 's' : ''} remaining.`;
+      const counter = document.getElementById("counterInfo");
+      const remaining = FREE_LIMIT - qrCount;
+      if (remaining > 0) {
+        counter.textContent = `You have ${remaining} free QR code${remaining > 1 ? 's' : ''} remaining.`;
+      } else {
+        counter.textContent = "Free QR code limit reached.";
+      }
     }
 
     function showFormats() {
-      document.getElementById("formatOptions").style.display = "flex";
+      const formatOptions = document.getElementById("formatOptions");
+      if (formatOptions.style.display === "none" || formatOptions.style.display === "") {
+        formatOptions.style.display = "flex";
+      } else {
+        formatOptions.style.display = "none";
+      }
     }
 
     function downloadFormat(format) {
       if (!currentCanvas) return;
 
-      const link = document.createElement('a');
-      link.download = `qr-code.${format}`;
-
-      if (format === 'svg') {
-        QRCode.toString(document.getElementById("linkInput").value.trim(), { type: 'svg' }, function (err, data) {
-          const blob = new Blob([data], { type: 'image/svg+xml' });
-          link.href = URL.createObjectURL(blob);
-          link.click();
+      if (format === "svg") {
+        const link = document.getElementById("linkInput").value.trim();
+        QRCode.toString(link, { type: 'svg' }, function (err, svgString) {
+          if (err) {
+            alert("SVG generate করতে সমস্যা হচ্ছে।");
+            return;
+          }
+          const blob = new Blob([svgString], { type: "image/svg+xml" });
+          const url = URL.createObjectURL(blob);
+          triggerDownload(url, `qrcode.${format}`);
+          URL.revokeObjectURL(url);
         });
       } else {
-        const dataURL = currentCanvas.toDataURL(`image/${format === 'jpg' ? 'jpeg' : 'png'}`);
-        link.href = dataURL;
-        link.click();
+        const dataURL = currentCanvas.toDataURL(`image/${format}`);
+        triggerDownload(dataURL, `qrcode.${format}`);
       }
     }
 
+    function triggerDownload(dataURL, filename) {
+      const a = document.createElement("a");
+      a.href = dataURL;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
     function showPaymentForm() {
-      document.getElementById("paymentForm").style.display = "block";
+      const form = document.getElementById("paymentForm");
+      if (form.style.display === "none" || form.style.display === "") {
+        form.style.display = "block";
+      } else {
+        form.style.display = "none";
+      }
     }
 
     function processPayment() {
-      alert("Demo payment submitted! Thank you.");
-      document.getElementById("popup").style.display = "none";
-      qrCount = 0;
-      updateCounter();
+      alert("Payment processing is not implemented in this demo.");
+      // এখানে পেমেন্ট গেটওয়ে ইন্টিগ্রেশন করা যাবে
     }
-
-    updateCounter();
   </script>
 </body>
 </html>
