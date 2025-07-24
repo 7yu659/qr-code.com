@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>QR Code Generator</title>
   <style>
+    /* আগের CSS অপরিবর্তিত */
     body {
       background-color: #f9fafb;
       font-family: 'Segoe UI', sans-serif;
@@ -14,7 +15,6 @@
       min-height: 100vh;
       margin: 0;
     }
-
     .card {
       background: white;
       padding: 30px;
@@ -25,13 +25,11 @@
       text-align: center;
       position: relative;
     }
-
     h1 {
       font-size: 24px;
       margin-bottom: 20px;
       color: #111827;
     }
-
     input[type="text"], button.generate-btn {
       width: 100%;
       padding: 12px;
@@ -41,7 +39,6 @@
       font-size: 16px;
       box-sizing: border-box;
     }
-
     button.generate-btn {
       background-color: #2563eb;
       color: white;
@@ -49,21 +46,17 @@
       cursor: pointer;
       transition: background 0.2s ease-in-out;
     }
-
     button.generate-btn:hover {
       background-color: #1d4ed8;
     }
-
     #qrCodeContainer {
       margin-top: 20px;
     }
-
     .description-text {
       margin-top: 10px;
       font-size: 14px;
       color: #6b7280;
     }
-
     #downloadBtn {
       background-color: #000;
       margin-top: 16px;
@@ -77,11 +70,9 @@
       width: 100%;
       transition: background 0.2s ease-in-out;
     }
-
     #downloadBtn:hover {
       background-color: #1f1f1f;
     }
-
     .format-options {
       margin-top: 14px;
       display: flex;
@@ -89,7 +80,6 @@
       animation: fadeIn 0.5s ease-in-out;
       gap: 10px;
     }
-
     .format-options button {
       padding: 10px 16px;
       border: none;
@@ -101,29 +91,23 @@
       transition: all 0.3s ease;
       flex: 1;
     }
-
     .format-options button:hover {
       transform: scale(1.1);
       opacity: 0.9;
     }
-
     .format-options button.png-btn {
       background: linear-gradient(to right, #06b6d4, #3b82f6);
     }
-
     .format-options button.jpg-btn {
       background: linear-gradient(to right, #ec4899, #f43f5e);
     }
-
     .format-options button.svg-btn {
       background: linear-gradient(to right, #10b981, #22c55e);
     }
-
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
     }
-
     #popup {
       position: fixed;
       top: 0;
@@ -135,7 +119,6 @@
       justify-content: center;
       align-items: center;
     }
-
     .popup-content {
       background: white;
       padding: 30px;
@@ -144,17 +127,14 @@
       width: 90%;
       text-align: center;
     }
-
     .popup-content h2 {
       margin-bottom: 10px;
     }
-
     .popup-content p {
       font-size: 14px;
       color: #4b5563;
       margin-bottom: 20px;
     }
-
     .popup-content button {
       background-color: #10b981;
       color: white;
@@ -164,13 +144,11 @@
       cursor: pointer;
       font-size: 16px;
     }
-
     .payment-form {
       margin-top: 20px;
       display: none;
       text-align: left;
     }
-
     .payment-form input {
       width: 100%;
       padding: 8px;
@@ -179,7 +157,6 @@
       border: 1px solid #ccc;
       font-size: 14px;
     }
-
     .payment-form button {
       background-color: #2563eb;
       color: white;
@@ -191,7 +168,7 @@
     }
   </style>
 </head>
-<body onclick="document.getElementById('clickSound').play().catch(()=>{})">
+<body>
   <div class="card">
     <h1>QR Code Generator</h1>
     <input id="linkInput" type="text" placeholder="Enter link (e.g. https://example.com)" />
@@ -226,23 +203,60 @@
   <!-- QRCode Library -->
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
 
-  <!-- Sound -->
+  <!-- Audio -->
   <audio id="clickSound" preload="auto">
     <source src="https://cdn.pixabay.com/download/audio/2023/03/16/audio_69f6a2c857.mp3?filename=pop-113172.mp3" type="audio/mpeg">
+  </audio>
+  <audio id="typeSound" preload="auto">
+    <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_b61c9ec59e.mp3?filename=keyboard-typing-20708.mp3" type="audio/mpeg">
   </audio>
 
   <script>
     let currentCanvas = null;
     let qrCount = 0;
     const FREE_LIMIT = 10;
+    let soundUnlocked = false;
+
+    // Unlock sounds on user click
+    document.addEventListener("click", function unlockSound() {
+      const clickSound = document.getElementById("clickSound");
+      const typeSound = document.getElementById("typeSound");
+      if (!soundUnlocked) {
+        clickSound.play().then(() => {
+          clickSound.pause();
+          clickSound.currentTime = 0;
+          typeSound.play().then(() => {
+            typeSound.pause();
+            typeSound.currentTime = 0;
+            soundUnlocked = true;
+          }).catch(console.warn);
+        }).catch(console.warn);
+        document.removeEventListener("click", unlockSound);
+      }
+    });
 
     function playClick() {
       const clickSound = document.getElementById("clickSound");
-      if (clickSound) {
+      if (clickSound && soundUnlocked) {
+        clickSound.pause();
         clickSound.currentTime = 0;
-        clickSound.play().catch(e => console.log("Sound play error:", e));
+        clickSound.play().catch(console.warn);
       }
     }
+
+    // Typing sound on input
+    document.addEventListener("DOMContentLoaded", () => {
+      document.querySelectorAll('input[type="text"]').forEach(input => {
+        input.addEventListener("input", () => {
+          const typeSound = document.getElementById("typeSound");
+          if (soundUnlocked) {
+            typeSound.pause();
+            typeSound.currentTime = 0;
+            typeSound.play().catch(console.warn);
+          }
+        });
+      });
+    });
 
     function generateQRCode() {
       const link = document.getElementById("linkInput").value.trim();
@@ -270,7 +284,7 @@
       QRCode.toCanvas(canvas, link, {
         width: 300,
         margin: 2,
-        errorCorrectionLevel: 'H', // High error correction
+        errorCorrectionLevel: 'H',
         scale: 6,
       }, function (error) {
         if (error) {
@@ -334,7 +348,6 @@
       updateCounter();
     }
 
-    // Initialize counter on page load
     updateCounter();
   </script>
 </body>
