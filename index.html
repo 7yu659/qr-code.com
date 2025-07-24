@@ -9,10 +9,12 @@
       background-color: #f9fafb;
       font-family: 'Segoe UI', sans-serif;
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
       margin: 0;
+      padding: 20px;
     }
     .card {
       background: white;
@@ -76,7 +78,6 @@
       margin-top: 14px;
       display: flex;
       justify-content: space-around;
-      animation: fadeIn 0.5s ease-in-out;
       gap: 10px;
     }
     .format-options button {
@@ -103,10 +104,6 @@
     .format-options button.svg-btn {
       background: linear-gradient(to right, #10b981, #22c55e);
     }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
     #popup {
       position: fixed;
       top: 0;
@@ -125,14 +122,6 @@
       max-width: 350px;
       width: 90%;
       text-align: center;
-    }
-    .popup-content h2 {
-      margin-bottom: 10px;
-    }
-    .popup-content p {
-      font-size: 14px;
-      color: #4b5563;
-      margin-bottom: 20px;
     }
     .popup-content button {
       background-color: #10b981;
@@ -179,6 +168,18 @@
       z-index: 999;
       box-shadow: 0 2px 10px rgba(0,0,0,0.2);
     }
+    .developer {
+      margin-top: 20px;
+      font-size: 14px;
+      color: #4b5563;
+    }
+    .developer a {
+      color: #2563eb;
+      text-decoration: none;
+    }
+    .developer a:hover {
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body ontouchstart="playClick()">
@@ -212,8 +213,11 @@
     </div>
   </div>
 
-  <!-- Interlink warning -->
-  <div id="interlinkPopup">Please enter a valid link (Interlink required)</div>
+  <div id="interlinkPopup">Please enter a valid link (required)</div>
+
+  <div class="developer">
+    Developer By: <a href="https://www.facebook.com/ebrahim.khalil.260497" target="_blank">Ebrahim Khalil</a>
+  </div>
 
   <!-- Sounds -->
   <audio id="clickSound" preload="auto">
@@ -281,7 +285,7 @@
       const downloadBtn = document.getElementById("downloadBtn");
       const formatOptions = document.getElementById("formatOptions");
 
-      if (!link || !(link.startsWith("http://") || link.startsWith("https://"))) {
+      if (!link) {
         showInterlinkPopup();
         return;
       }
