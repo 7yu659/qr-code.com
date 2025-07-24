@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>QR Code Generator</title>
+  <style>
+    body {
+      background-color: #f9fafb;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+
+    .card {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+      position: relative;
+    }
+
+    h1 {
+      font-size: 24px;
+      margin-bottom: 20px;
+      color: #111827;
+    }
+
+    input[type="text"], button.generate-btn {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+
+    button.generate-btn {
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s ease-in-out;
+    }
+
+    button.generate-btn:hover {
+      background-color: #1d4ed8;
+    }
+
+    #qrCodeContainer {
+      margin-top: 20px;
+    }
+
+    .description-text {
+      margin-top: 10px;
+      font-size: 14px;
+      color: #6b7280;
+    }
+
+    #downloadBtn {
+      background-color: #000;
+      margin-top: 16px;
+      padding: 12px;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 16px;
+      border: none;
+      cursor: pointer;
+      display: none;
+      width: 100%;
+      transition: background 0.2s ease-in-out;
+    }
+
+    #downloadBtn:hover {
+      background-color: #1f1f1f;
+    }
+
+    .format-options {
+      margin-top: 14px;
+      display: flex;
+      justify-content: space-around;
+      animation: fadeIn 0.5s ease-in-out;
+      gap: 10px;
+    }
+
+    .format-options button {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 10px;
+      font-weight: bold;
+      font-size: 14px;
+      color: #fff;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      flex: 1;
+    }
+
+    .format-options button:hover {
+      transform: scale(1.1);
+      opacity: 0.9;
+    }
+
+    .format-options button.png-btn {
+      background: linear-gradient(to right, #06b6d4, #3b82f6);
+    }
+
+    .format-options button.jpg-btn {
+      background: linear-gradient(to right, #ec4899, #f43f5e);
+    }
+
+    .format-options button.svg-btn {
+      background: linear-gradient(to right, #10b981, #22c55e);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    #popup {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: rgba(0,0,0,0.5);
+      display: none;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .popup-content {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      max-width: 350px;
+      width: 90%;
+      text-align: center;
+    }
+
+    .popup-content h2 {
+      margin-bottom: 10px;
+    }
+
+    .popup-content p {
+      font-size: 14px;
+      color: #4b5563;
+      margin-bottom: 20px;
+    }
+
+    .popup-content button {
+      background-color: #10b981;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    .payment-form {
+      margin-top: 20px;
+      display: none;
+      text-align: left;
+    }
+
+    .payment-form input {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+    }
+
+    .payment-form button {
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      width: 100%;
+    }
+  </style>
+</head>
+<body onclick="document.getElementById('clickSound').play().catch(()=>{})">
+  <div class="card">
+    <h1>QR Code Generator</h1>
+    <input id="linkInput" type="text" placeholder="Enter link (e.g. https://example.com)" />
+    <input id="descInput" type="text" placeholder="Optional description" />
+    <button class="generate-btn" onclick="playClick(); generateQRCode()">Generate QR Code</button>
+    <p id="counterInfo" class="description-text">You have 10 free QR codes remaining.</p>
+    <div id="qrCodeContainer"></div>
+    <button id="downloadBtn" onclick="playClick(); showFormats()">Download Now</button>
+    <div class="format-options" id="formatOptions" style="display:none;">
+      <button class="png-btn" onclick="playClick(); downloadFormat('png')">PNG</button>
+      <button class="jpg-btn" onclick="playClick(); downloadFormat('jpg')">JPG</button>
+      <button class="svg-btn" onclick="playClick(); downloadFormat('svg')">SVG</button>
+    </div>
+  </div>
+
+  <!-- Popup -->
+  <div id="popup">
+    <div class="popup-content">
+      <h2>Limit Exceeded</h2>
+      <p>আপনি ফ্রিতে সর্বোচ্চ ১০টি QR কোড জেনারেট করতে পারবেন। এখন থেকে প্রতি কিউআর কোড ১ ডলার।</p>
+      <button onclick="playClick(); showPaymentForm()">Pay Now</button>
+      <div class="payment-form" id="paymentForm">
+        <input type="text" placeholder="Cardholder Name" />
+        <input type="text" placeholder="Card Number" />
+        <input type="text" placeholder="MM/YY" />
+        <input type="text" placeholder="CVC" />
+        <button onclick="playClick(); processPayment()">Submit Payment</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- QRCode Library -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+
+  <!-- Sound -->
+  <audio id="clickSound" preload="auto">
+    <source src="https://cdn.pixabay.com/download/audio/2023/03/16/audio_69f6a2c857.mp3?filename=pop-113172.mp3" type="audio/mpeg">
+  </audio>
+
+  <script>
+    let currentCanvas = null;
+    let qrCount = 0;
+    const FREE_LIMIT = 10;
+
+    function playClick() {
+      const clickSound = document.getElementById("clickSound");
+      if (clickSound) {
+        clickSound.currentTime = 0;
+        clickSound.play().catch(e => console.log("Sound play error:", e));
+      }
+    }
+
+    function generateQRCode() {
+      const link = document.getElementById("linkInput").value.trim();
+      const description = document.getElementById("descInput").value.trim();
+      const container = document.getElementById("qrCodeContainer");
+      const downloadBtn = document.getElementById("downloadBtn");
+      const formatOptions = document.getElementById("formatOptions");
+
+      if (!link) {
+        alert("Please enter a link.");
+        return;
+      }
+
+      if (qrCount >= FREE_LIMIT) {
+        document.getElementById("popup").style.display = "flex";
+        return;
+      }
+
+      container.innerHTML = "";
+      downloadBtn.style.display = "none";
+      formatOptions.style.display = "none";
+
+      const canvas = document.createElement("canvas");
+
+      QRCode.toCanvas(canvas, link, {
+        width: 300,
+        margin: 2,
+        errorCorrectionLevel: 'H', // High error correction
+        scale: 6,
+      }, function (error) {
+        if (error) {
+          console.error(error);
+          alert("QR Code generate করতে সমস্যা হচ্ছে।");
+          return;
+        }
+
+        container.appendChild(canvas);
+        currentCanvas = canvas;
+
+        if (description) {
+          const desc = document.createElement("p");
+          desc.className = "description-text";
+          desc.textContent = description;
+          container.appendChild(desc);
+        }
+
+        downloadBtn.style.display = "block";
+        qrCount++;
+        updateCounter();
+      });
+    }
+
+    function updateCounter() {
+      const remaining = Math.max(FREE_LIMIT - qrCount, 0);
+      document.getElementById("counterInfo").textContent = `You have ${remaining} free QR code${remaining !== 1 ? 's' : ''} remaining.`;
+    }
+
+    function showFormats() {
+      document.getElementById("formatOptions").style.display = "flex";
+    }
+
+    function downloadFormat(format) {
+      if (!currentCanvas) return;
+
+      const link = document.createElement('a');
+      link.download = `qr-code.${format}`;
+
+      if (format === 'svg') {
+        QRCode.toString(document.getElementById("linkInput").value.trim(), { type: 'svg' }, function (err, data) {
+          const blob = new Blob([data], { type: 'image/svg+xml' });
+          link.href = URL.createObjectURL(blob);
+          link.click();
+        });
+      } else {
+        const dataURL = currentCanvas.toDataURL(`image/${format === 'jpg' ? 'jpeg' : 'png'}`);
+        link.href = dataURL;
+        link.click();
+      }
+    }
+
+    function showPaymentForm() {
+      document.getElementById("paymentForm").style.display = "block";
+    }
+
+    function processPayment() {
+      alert("Demo payment submitted! Thank you.");
+      document.getElementById("popup").style.display = "none";
+      qrCount = 0;
+      updateCounter();
+    }
+
+    // Initialize counter on page load
+    updateCounter();
+  </script>
+</body>
+</html>
